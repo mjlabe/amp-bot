@@ -1,179 +1,29 @@
 /*
 ---------------------------------------
-|       TERRORBOT FIRMWARE v1.5       |                                                               05/2016
+|       AMPBOT FIRMWARE v1.5       |                                                               05/2023
 ---------------------------------------
 
-    TERRORBOT FOR ORANGE DARK TERROR HEAD
+    AMPBOT Arduino knob controller.
+    
+    Forked from TERRORBOT FOR ORANGE DARK TERROR HEAD
      
     copyright Michael Karsay 2013 - 2016
     http://beam.to/terrorBot
-    
-    You may use and/or modify this code for personal use.
-    If you want to publish modified versions of this code,
-    keep the header with my name and homepage intact and give me proper credits.   
-    Feel free to contact me if you need other agreements.
 
-    FEATURING:
-    ----------
-    
-    - INDIVIDUAL SERVO SPEEDs
-
-    - 12 PRESET SLOTS IN 4 BANKS
-      --> DOUBLE LONGPRESS BUTTON 2 & 3 WILL CHANGE BANK
-      
-    - NO LAG EVENTS (BYPASSED CLICKBUTTON LIBRARY)
-      --> ALLOW IMEDIATE BUTTON RESPONSE WHILE SWITCHING PRESETS FROM BTN3 TO BTN2 AND BACK IN BANK 3 + 4 
-
-    - VOLUME AND GAIN BOOST
-      --> LONGPRESS BUTTON 2 WILL BOOST VOLUME
-      --> LONGPRESS BUTTON 3 WILL BOOST GAIN
-        --> DOUBLE CLICK BUTTON 2 WHILE IN EDITMODE TO SET VOLUME VALUES (BOOST-AMMOUNT + SPEED)
-        --> DOUBLE CLICK BUTTON 3 WHILE IN EDITMODE TO SET GAIN VALUES (BOOST-AMMOUNT + SPEED)
- 
-     - EDIT MODE
-      --> LONGPRESS BUTTON 1 WILL GO TO EDIT MODE FOR ACTIVE PRESET
-          -- BUTTON 2 AND 3 WILL CHANGE THE VALUE UP AND DOWN
-             - BUTTON LEDs WILL INDICATE THE HEIGH OF THE VALUE
-          -- SINGLE CLICK ON BUTTON 1 WILL JUMP TO THE NEXT STATE
-          -- LONG CLICK BUTTON 1 WILL JUMP TO PREVIOUS STATE
-          -- TRIPPLE CLICK BUTTON 1 WILL EXIT WITHOUT SAVING
-          -- STATES:
-             -STATE-1: POSITION VOLUME
-             -STATE-2: POSITION SHAPE
-             -STATE-3: POSITION GAIN
-             -STATE-4: SPEED FOR VOLUME SERVO
-             -STATE-5: SPEED FOR SHAPE SERVO
-              --> THERE IS A TIMER HERE. IF NO BUTTON IS PRESSED FOR 5 SECONDS
-                  ALL SERVOS WILL GET THE SAME SPEED AS SELECTED FOR VOLUME IN STATE-4.                  
-             -STATE-6: SPEED FOR GAIN SERVO
-             -STATE-7: SAVE AND EXIT
-
-    - COPY PRESET TO ANOTHER SLOT
-      --> LOAD PRESET YOU WANT TO COPY AND ENTER EDITMODE
-          -- TRIPPLE CLICK ON BUTTON 3 WHILE IN EDITSTATE 1 WILL LAUNCH NEW SLOT SELECTOR
-          -- DOUBLE CLICK ON ANY BUTTON TO CANCEL
-          -- IF NO BUTTON IS PRESSED FOR 5 SECONDS SELECTOR WILL BE CANCELED
-
-    - BACKUP AND RESTORE PRESETS
-      --> HOLD BUTTON 1 DURING STARTUP FOR BACKUP
-          -- THIS WILL SERIAL PRINT ALL VALUES IN AN ARRAY AND
-             BACKUP ALL VALUES TO HIGHER EEPROM SLOTS
-      --> HOLD BUTTON 1 AND 2 DURING STARTUP
-             TO RESTORE VALUES FROM HIGHER EEPROM SLOTS
-
-    - GLOBAL OFFSET
-      --> DOUBLE CLICK BUTTON 1 WHILE IN EDITMODE 1 TO SET MASTER VOLUME
-          -- HOLD BUTTON 2 AND 3 TO CHANGE
-          -- PRESS BUTTON 1 TO SET SHAPE OFFSET
-          -- PRESS BUTTON 1 AGAIN TO SET GAIN OFFSET
-          -- PRESS BUTTON 1 AGAIN TO SAVE AND EXIT
-          
-    - FREEMODE
-      --> TRIPPLE CLICK ON DESIRED PRESET TO OPEN IT IN FREEMODE
-          -- CONTROLL EACH SERVO WITH A SINGLE BUTTON
-           - PRESS AND HOLD BUTTON 1 WILL CHANGE VOLUME
-           - PRESS AND HOLD BUTTON 2 WILL CHANGE SHAPE
-           - PRESS AND HOLD BUTTON 3 WILL CHANGE GAIN
-           - SINGLE CLICK CHANGES EACH DIRECTION (LED ON = INCREASE VALUE)
-           - TRIPPLE CLICK BUTTON 1 TO EXIT AND SAVE TO ACTUAL PRESET
-           - TRIPPLE CLICK BUTTON 2 or 3 TO EXIT WITHOUT SAVING AND RETURN TO ACTUAL PRESET 
-
-    - METRONOME
-      --> TRIPPLE LONG CLICK TO ACTIVATE (CLICK - CLICK - CLICK AND HOLD)
-          -- HOLD BUTTON 2 AND 3 TO CHANGE SPEED
-          -- PRESS BUTTON 1 TO EXIT
-          
 -------------------------------------------------------------------------------------------------------------
 */
-#include <VarSpeedServo.h>
+
 #include <EEPROM.h>
-#include <ClickButton.h>
-// ----------------------------------------------------------------------------------------------------------
-// --------------------------------------------------------------------------------------------------- SERVOs
-VarSpeedServo VolumeServo;
-VarSpeedServo ShapeServo;
-VarSpeedServo GainServo;
-const int VolumePin =                 9;
-const int ShapePin =                 10;
-const int GainPin =                  11;
-int masterOffset =                    0;
-int shapeOffset =                     0;
-int gainOffset =                      0;
-int volume;
-int shape;
-int gain;
-int gainBoost =                      27;
-int volumeBoost =                    27;
-int speedVolumeboost =                7;
-int speedGainboost =                  7;
-int lastVolume;
-int lastShape;
-int lastGain;
-int volumeSpeed =                    27; // sweep speed, 1 is slowest, 255 fastest)
-int shapeSpeed =                     27;
-int gainSpeed =                      27;
-int editSpeed =                     255;
-int volumeMin =                       7; // range of the servos
-int volumeMax =                     174;
-int shapeMin =                        4;
-int shapeMax =                      165;
-int gainMin =                         7;
-int gainMax =                       158;
-// -------------------------------------------------------------------------------------------------- BUTTONs
-int function =                        0;
-const int buttons =                   3;
-const int buttonPin1 =                0;
-const int buttonPin2 =                8;
-const int buttonPin3 =               12;
-ClickButton button[3] = {
-  ClickButton (buttonPin1, LOW, CLICKBTN_PULLUP),
-  ClickButton (buttonPin2, LOW, CLICKBTN_PULLUP),
-  ClickButton (buttonPin3, LOW, CLICKBTN_PULLUP),
-};
-int pressed[buttons]  =     { 0, 0, 0 };
-int longClickTime_default = 1720;  //longClickTime default
-// ----------------------------------------------------------------------------------------------------- LEDs
-const int ledPin[buttons] = { 2, 4, 7 };    // Arduino pins to the LEDs
-const int R_PIN =                     3;
-const int G_PIN =                     5;
-const int B_PIN =                     6;
-int r;
-int g;
-int b;
-// -------------------------------------------------------------- INDICATOR LEVEL TO TRIGGER C1, C2 & C3 LEDs
-int volumeIndicator1 =               66;
-int volumeIndicator2 =              127;
-int volumeIndicator3 =              158;
-int shapeIndicator1 =                99;
-int shapeIndicator2 =               150;
-int shapeIndicator3 =               161;
-int gainIndicator1 =                 27;
-int gainIndicator2 =                 88;
-int gainIndicator3 =                127;
-int servoSpeedsIndicator1 =          27;
-int servoSpeedsIndicator2 =         127;
-int servoSpeedsIndicator3 =         172;
-// ----------------------------------------------------------------------------------------------------- VARs
-int DELAY =                          10;  // Delay per loop in ms
-float easeFreemode =                 35;  // Free Mode Servospeed factor
-int editState =                       0;
-int bank =                            1;
-int state =                           1;
-int oldState =                        0;
-int lastBtn =                         0;
-int timer =                           0;
-int blinker =                         0;
-int tempo =                         400;  // tempo 400 will be arround 120 bpm
-int canelDelay =                    400; // time until all servos will 
-float y;                                   // get the value of the first in edit when switching to shapeSpeed
-float x =                             1;
-boolean trigger =                 false;
-boolean DirectionVolume =          true;
-boolean DirectionShape =           true;
-boolean DirectionGain =            true;
-// ----------------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------- VOID SETUP
-// ----------------------------------------------------------------------------------------------------------
+#include amp_bot.h
+#include "button.cpp"
+#include "servo.cpp"
+#include "backup.cpp"
+
+
+// ==========================================================================================================
+// SETUP
+// ==========================================================================================================
+
 void setup() {
   Serial.begin(9600);
   for (int i=0; i<buttons; i++) {
@@ -185,73 +35,26 @@ void setup() {
   pinMode(R_PIN, OUTPUT);
   pinMode(G_PIN, OUTPUT);
   pinMode(B_PIN, OUTPUT);
-// -------------------------------------------------------- INIT: WAIT FOR BACKUP/RESTORE CUE & BLINK BUTTONS
-  for (int i=0; i<2; i++) {
-    digitalWrite(ledPin[0], HIGH);
-    digitalWrite(ledPin[1], HIGH);
-    digitalWrite(ledPin[2], HIGH);
-    delay (172);
-    digitalWrite(ledPin[0], LOW);
-    digitalWrite(ledPin[1], LOW);
-    digitalWrite(ledPin[2], LOW);
-    delay (172);
-  }
-  if (!digitalRead(buttonPin1))
-    backupPresets();
-  if (!digitalRead(buttonPin2) && !digitalRead(buttonPin3))
-    restoreBackup();
-  analogWrite(R_PIN, 0);
-  analogWrite(G_PIN, 0);
-  analogWrite(B_PIN, 0);
-// --------------------------------------------------------------------- SERVOS RUSHES TO MIDDLE POSITION FIX
-  volume = EEPROM.read(0);    // 400++ for last position --> eeprom killer
-  shape  = EEPROM.read(1);
-  gain =   EEPROM.read(2);
-  int m = EEPROM.read(94);
-  int mO = EEPROM.read(95);
-  if (m == 1)
-    masterOffset = mO;
-  else
-    masterOffset = -mO;    
-  int s = EEPROM.read(96);
-  int sO = EEPROM.read(97);
-  if (s == 1)
-    shapeOffset = sO;
-  else
-    shapeOffset = -sO;    
-  int g = EEPROM.read(98);
-  int gO = EEPROM.read(99);
-  if (g == 1)
-    gainOffset = gO;
-  else
-    gainOffset = -gO;    
-  lastVolume = ((volume * 10) + 600);
-  lastShape = ((shape * 10) + 600);
-  lastGain = ((gain * 10) + 600);
-  lastVolume = constrain(lastVolume, 600, 2180);  // limit to range of servos in ms
-  lastShape = constrain(lastShape, 600, 2180);
-  lastGain = constrain(lastGain, 600, 2180);
-// ------------------------------------------------------------------------------------ SERVO ATTACH POSITION
-  VolumeServo.writeMicroseconds(lastVolume);      
-  ShapeServo.writeMicroseconds(lastShape);       
-  GainServo.writeMicroseconds(lastGain);    
-  VolumeServo.attach(VolumePin);
-  ShapeServo.attach(ShapePin);
-  GainServo.attach(GainPin);
-  delay(DELAY);
-  VolumeServo.slowmove(90,volumeSpeed);  // middle position
-  ShapeServo.slowmove(shapeMax,shapeSpeed);  // end position
-  GainServo.slowmove(gainMin,gainSpeed);     // start position
-// ---------------------------------------------------------------------------------------- READ BOOST VALUES
-  volumeBoost = EEPROM.read(90);
-  speedVolumeboost = EEPROM.read(91);
-  gainBoost = EEPROM.read(92);
-  speedGainboost = EEPROM.read(93);
+
+  // ----------------------------------------------------------------------------------------------------------
+  // INIT: WAIT FOR BACKUP/RESTORE CUE & BLINK BUTTONS
+  // ----------------------------------------------------------------------------------------------------------
+
+  wait_for_backup_restore()
+
+  servo_start_middle()
+
+  servo_attach_position()
 }
+
+// ==========================================================================================================
+// FUNCTIONS
+// ==========================================================================================================
+
 // ----------------------------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------FUNCTIONS
+// BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
 // ----------------------------------------------------------------------------------------------------------
-// ------------------------------------------------------ BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
+
 int backupPresets() {
   pressed[0] = 0;
   editState = 997;
@@ -281,7 +84,11 @@ int backupPresets() {
   Serial.println("]");
   editState = 0;
 }
-// ------------------------------------------------------------------------------------------- RESTORE BACKUP
+
+// ----------------------------------------------------------------------------------------------------------
+// RESTORE BACKUP
+// ----------------------------------------------------------------------------------------------------------
+
 int restoreBackup() {
   pressed[1] = 0;
   pressed[2] = 0;
@@ -297,7 +104,11 @@ int restoreBackup() {
   }
   editState = 0;
 }
-// ------------------------------------------------------------------------------------------------- FREEMODE
+
+// ----------------------------------------------------------------------------------------------------------
+// FREEMODE
+// ----------------------------------------------------------------------------------------------------------
+
 int freemode() {
   ledsOff();
   blinkButton(B_PIN);
@@ -308,7 +119,11 @@ int freemode() {
   button[1].longClickTime  = 271;
   button[2].longClickTime  = 271;
 }
-// ------------------------------------------------------------------------------------------------ METRONOME
+
+// ----------------------------------------------------------------------------------------------------------
+// METRONOME
+// ----------------------------------------------------------------------------------------------------------
+
 int metronome() {
   editState = 998;
   ledsOff();
@@ -359,8 +174,11 @@ int metronome() {
   ledStates();
   delay(721);
 }
+
 // ----------------------------------------------------------------------------------------------------------
-// ---------------------------------------------------------------------------- MOVE ALL SERVOS INTO POSITION
+// MOVE ALL SERVOS INTO POSITION
+// ----------------------------------------------------------------------------------------------------------
+
 int moveServos() {
   int v = volume + masterOffset;
   v = constrain(v, volumeMin, volumeMax);
@@ -375,7 +193,11 @@ int moveServos() {
 //  EEPROM.write(401, shape);
 //  EEPROM.write(402, gain);
 }  
-// --------------------------------------------------------------- ACCELERATION FOR SERVO SPEEDS IN EDIT MODE
+
+// ----------------------------------------------------------------------------------------------------------
+// ACCELERATION FOR SERVO SPEEDS IN EDIT MODE
+// ----------------------------------------------------------------------------------------------------------
+
 int ease(int which, int whichmin, int whichmax, int a) {
   float d = a;
   if (!digitalRead(buttonPin2) || !digitalRead(buttonPin3)) { 
@@ -401,6 +223,10 @@ int ease(int which, int whichmin, int whichmax, int a) {
   which = constrain(which, whichmin, whichmax);
   return(which);  
 }
+
+// ----------------------------------------------------------------------------------------------------------
+// BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
+// ----------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------- BLINK BUTTON LED
 int blinkButton(int pin) {
   if (digitalRead(pin)) {
@@ -415,6 +241,10 @@ int blinkButton(int pin) {
     delay (100);
   }         
 }
+
+// ----------------------------------------------------------------------------------------------------------
+// BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
+// ----------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------ BLINK ALL BUTTON LEDs
 int blinkAllButtons() {
   blinker++;
@@ -430,6 +260,10 @@ int blinkAllButtons() {
     digitalWrite(ledPin[2], HIGH); 
   }    
 }
+
+// ----------------------------------------------------------------------------------------------------------
+// BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
+// ----------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------- ALL LEDs OFF
 int ledsOff() {
   digitalWrite(ledPin[0], LOW);
@@ -439,6 +273,10 @@ int ledsOff() {
   analogWrite(G_PIN, 0);
   analogWrite(B_PIN, 0);
 }  
+
+// ----------------------------------------------------------------------------------------------------------
+// BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
+// ----------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------- SET VALUE-INDICATOR LEDs
 int indicator(int which, int marker1, int marker2, int marker3) {
   digitalWrite(ledPin[0], LOW);
@@ -484,6 +322,10 @@ int offsetIndicator(int which, int ledpin) {
     analogWrite(ledpin, which * 2.833333);
   }  
 }
+
+// ----------------------------------------------------------------------------------------------------------
+// BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
+// ----------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------- CHECK WHAT STATE IS SELECTED AND LIGHT THE RIGHT LEDs
 int ledStates() {
   delay (2);

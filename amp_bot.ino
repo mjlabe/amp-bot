@@ -13,14 +13,14 @@
 -------------------------------------------------------------------------------------------------------------
 */
 
-#include amp_bot.h
+#include "amp_bot.h"
 #include "button.cpp"
 #include "servo.cpp"
 #include "backup.cpp"
-#include "short_click.cpp"
-#include "long_click.cpp"
+#include "state_short_click.cpp"
+#include "state_long_click.cpp"
 #include "state.cpp"
-#include "handle_freemode"
+#include "handle_freemode.cpp"
 #include "no_lag_bank_event.cpp"
 
 
@@ -60,11 +60,8 @@ void loop() {
     if (button[i].clicks != 0) pressed[i] = button[i].clicks;
 
     handle_short_click()
-
     handle_long_click()
-
     handle_double_click()
-
     handle_triple_click()
   }
 

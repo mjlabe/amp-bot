@@ -13,15 +13,15 @@
 -------------------------------------------------------------------------------------------------------------
 */
 
-#include "amp_bot.h"
-#include "button.cpp"
-#include "servo.cpp"
-#include "backup.cpp"
-#include "state_short_click.cpp"
-#include "state_long_click.cpp"
-#include "state.cpp"
-#include "handle_freemode.cpp"
-#include "no_lag_bank_event.cpp"
+#include "amp_bot.hpp"
+#include "button/button.hpp"
+#include "servo/servo.hpp"
+#include "backup/backup.hpp"
+#include "state/short_click.cpp"
+#include "state/long_click.cpp"
+#include "state/state.cpp"
+#include "state/freemode.cpp"
+#include "state/no_lag_bank_event.cpp"
 
 
 // ==========================================================================================================

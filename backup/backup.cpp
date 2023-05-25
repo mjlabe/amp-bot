@@ -44,7 +44,7 @@ void wait_for_backup_restore() {
 // BACKUP PRESETS TO EEPROM (500++) AND SERIAL.PRINTLN
 // ----------------------------------------------------------------------------------------------------------
 
-int backupPresets() {
+void backupPresets() {
   pressed[0] = 0;
   editState = 997;
   Serial.println("Service Menu");
@@ -78,7 +78,7 @@ int backupPresets() {
 // RESTORE BACKUP
 // ----------------------------------------------------------------------------------------------------------
 
-int restoreBackup() {
+void restoreBackup() {
   pressed[1] = 0;
   pressed[2] = 0;
   editState = 997;

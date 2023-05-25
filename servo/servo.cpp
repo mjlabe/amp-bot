@@ -56,7 +56,7 @@ void servo_attach_position() {
 // MOVE ALL SERVOS INTO POSITION
 // ----------------------------------------------------------------------------------------------------------
 
-int moveServos() {
+void moveServos() {
   int v = volume + masterOffset;
   v = constrain(v, volumeMin, volumeMax);
   VolumeServo.slowmove(v,volumeSpeed);
@@ -102,14 +102,14 @@ int ease(int which, int whichmin, int whichmax, int a) {
 }
 
 // --------------------------------------------------------------------------------------------- BOOST VOLUME
-int boostVolume() {
+void boostVolume() {
   blinkAllButtons();
   volume = constrain(volume + volumeBoost, volumeMin, volumeMax);
   VolumeServo.slowmove(volume,speedVolumeboost);
   ledStates();
 }
 // ----------------------------------------------------------------------------------------------- BOOST GAIN
-int boostGain() {
+void boostGain() {
   blinkAllButtons();
   gain = constrain(gain + gainBoost, gainMin, gainMax);
   GainServo.slowmove(gain,speedGainboost);

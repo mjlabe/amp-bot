@@ -5,7 +5,7 @@
 // BLINK BUTTON LED
 // ----------------------------------------------------------------------------------------------------------
 
-int blinkButton(int pin) {
+void blinkButton(int pin) {
   if (digitalRead(pin)) {
     digitalWrite(pin, LOW);
     delay (100);
@@ -23,7 +23,7 @@ int blinkButton(int pin) {
 // BLINK ALL BUTTON LEDs
 // ----------------------------------------------------------------------------------------------------------
 
-int blinkAllButtons() {
+void blinkAllButtons() {
   blinker++;
   if (blinker > 80)
     blinker = 0;
@@ -42,7 +42,7 @@ int blinkAllButtons() {
 // ALL LEDs OFF
 // ----------------------------------------------------------------------------------------------------------
 
-int ledsOff() {
+void ledsOff() {
   digitalWrite(ledPin[0], LOW);
   digitalWrite(ledPin[1], LOW);
   digitalWrite(ledPin[2], LOW); 
@@ -55,7 +55,7 @@ int ledsOff() {
 // SET VALUE-INDICATOR LEDs
 // ----------------------------------------------------------------------------------------------------------
 
-int indicator(int which, int marker1, int marker2, int marker3) {
+void indicator(int which, int marker1, int marker2, int marker3) {
   digitalWrite(ledPin[0], LOW);
   digitalWrite(ledPin[1], LOW);
   digitalWrite(ledPin[2], LOW); 
@@ -73,7 +73,7 @@ int indicator(int which, int marker1, int marker2, int marker3) {
     digitalWrite(ledPin[2], LOW);
 }
 
-int offsetIndicator(int which, int ledpin) {
+void offsetIndicator(int which, int ledpin) {
   if (which < 0) {
     digitalWrite(ledPin[0], HIGH);
     digitalWrite(ledPin[1], HIGH);
@@ -104,7 +104,7 @@ int offsetIndicator(int which, int ledpin) {
 // CHECK WHAT STATE IS SELECTED AND LIGHT THE RIGHT LEDs
 // ----------------------------------------------------------------------------------------------------------
 
-int ledStates() {
+void ledStates() {
   delay (2);
   digitalWrite(ledPin[0], LOW);
   digitalWrite(ledPin[1], LOW);

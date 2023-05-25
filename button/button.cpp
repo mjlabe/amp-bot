@@ -6,7 +6,7 @@
 // FREEMODE
 // ----------------------------------------------------------------------------------------------------------
 
-int freemode() {
+void freemode() {
   ledsOff();
   blinkButton(B_PIN);
   delay(200);
@@ -21,7 +21,7 @@ int freemode() {
 // LOAD PRESET IF BUTTON1 WAS PRESSED
 // ----------------------------------------------------------------------------------------------------------
 
-int loadBtn1() {
+void loadBtn1() {
   switch (bank) {
     case 1:
       volume = EEPROM.read(0);
@@ -66,7 +66,7 @@ int loadBtn1() {
 // LOAD PRESET IF BUTTON2 WAS PRESSED
 // ----------------------------------------------------------------------------------------------------------
 
-int loadBtn2() {  
+void loadBtn2() {
   switch (bank) {
     case 1:
       volume = EEPROM.read(3);
@@ -110,7 +110,7 @@ int loadBtn2() {
 // LOAD PRESET IF BUTTON3 WAS PRESSED
 // ----------------------------------------------------------------------------------------------------------
 
-int loadBtn3() {        
+void loadBtn3() {
   switch (bank) {
     case 1:
       volume = EEPROM.read(6);

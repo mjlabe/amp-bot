@@ -5,7 +5,7 @@
 // EDIT PRESET
 // ----------------------------------------------------------------------------------------------------------
 
-int edit() {
+void edit() {
   editState = 1;
   button[0].longClickTime  = 500;
   button[1].longClickTime  = 500;
@@ -26,7 +26,7 @@ Serial.print("Volume :");
 // COPY PRESET
 // ----------------------------------------------------------------------------------------------------------
 
-int copyPreset() {
+void copyPreset() {
   editState = 900;
   timer = 0;
   blinker = 0;
@@ -53,7 +53,7 @@ int copyPreset() {
 // RESTORE PRESET
 // ----------------------------------------------------------------------------------------------------------
 
-int restorePreset() {
+void restorePreset() {
   switch (lastBtn) {
     case 1:
       loadBtn1();
@@ -71,7 +71,7 @@ int restorePreset() {
 // SAVE PRESET TO EEPROM
 // ----------------------------------------------------------------------------------------------------------
 
-int savePreset() {
+void savePreset() {
   switch (state) {
     case 1:
       EEPROM.write(0, volume);
